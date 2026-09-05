@@ -1,0 +1,23 @@
+name = "money-manager"
+main = ".open-next/worker.js"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+# D1 database binding — run `wrangler d1 create money-manager` first,
+# then paste the returned database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "money-manager"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# R2 bucket for account icons — run `wrangler r2 bucket create money-manager-icons` first.
+[[r2_buckets]]
+binding = "ICONS"
+bucket_name = "money-manager-icons"
+
+# Set with: wrangler secret put SESSION_SECRET
+# [vars]
