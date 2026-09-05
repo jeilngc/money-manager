@@ -14,7 +14,7 @@ binding = "money_manager"
 database_name = "money-manager"
 database_id = "acdae8c4-69f3-4e18-84cc-b4a4ca35dbb4"
 
-# R2 bucket for account icons — run `wrangler r2 bucket create money-manager-icons` first.
+# R2 bucket for account icons — run `wrangler r2 bucket create money-manager-icons` first. D
 [[r2_buckets]]
 binding = "money-manager-icons"
 bucket_name = "money-manager-icons"
