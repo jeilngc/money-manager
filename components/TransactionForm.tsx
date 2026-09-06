@@ -17,9 +17,17 @@ interface Category {
   kind: "income" | "expense";
 }
 
-export function TransactionForm({ accounts, categories }: { accounts: Account[]; categories: Category[] }) {
+export function TransactionForm({
+  accounts,
+  categories,
+  initialKind = "expense",
+}: {
+  accounts: Account[];
+  categories: Category[];
+  initialKind?: "expense" | "income" | "transfer";
+}) {
   const router = useRouter();
-  const [kind, setKind] = useState<"expense" | "income" | "transfer">("expense");
+  const [kind, setKind] = useState<"expense" | "income" | "transfer">(initialKind);
   const [amount, setAmount] = useState("");
   const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
   const [toAccountId, setToAccountId] = useState(accounts[1]?.id ?? accounts[0]?.id ?? "");
