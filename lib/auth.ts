@@ -45,6 +45,8 @@ export async function verifyPassword(password: string, hash: string, salt: strin
 export interface SessionUser {
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
 }
 
 export async function createSession(db: Env["DB"], userId: string): Promise<string> {
@@ -77,15 +79,15 @@ export async function getSessionUser(db: Env["DB"]): Promise<SessionUser | null>
 
   const row = await db
     .prepare(
-      `SELECT u.id as id, u.email as email, s.expires_at as expires_at
+      `SELECT u.id as id, u.email as email, u.first_name as first_name, u.last_name as last_name, s.expires_at as expires_at
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.id = ?`
     )
     .bind(sessionId)
-    .first<{ id: string; email: string; expires_at: number }>();
+    .first<{ id: string; email: string; first_name: string; last_name: string; expires_at: number }>();
 
   if (!row || row.expires_at < now()) return null;
-  return { id: row.id, email: row.email };
+  return { id: row.id, email: row.email, firstName: row.first_name, lastName: row.last_name };
 }
 
 export async function deleteSession(db: Env["DB"]) {
