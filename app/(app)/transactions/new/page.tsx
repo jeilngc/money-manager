@@ -2,7 +2,12 @@ import { cf } from "@/lib/cloudflare";
 import { getSessionUser } from "@/lib/auth";
 import { TransactionForm } from "@/components/TransactionForm";
 
-export default async function NewTransactionPage() {
+export default async function NewTransactionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ kind?: string }>;
+}) {
+  const { kind } = await searchParams;
   const { DB } = cf();
   const user = await getSessionUser(DB);
 
@@ -15,10 +20,13 @@ export default async function NewTransactionPage() {
       .all(),
   ]);
 
+  const initialKind = kind === "income" || kind === "transfer" ? kind : "expense";
+
   return (
     <TransactionForm
       accounts={(accounts.results ?? []) as any}
       categories={(categories.results ?? []) as any}
+      initialKind={initialKind}
     />
   );
 }

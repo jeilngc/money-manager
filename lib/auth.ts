@@ -5,7 +5,7 @@ import { id, now } from "./utils";
 const SESSION_COOKIE = "session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
 
-function bufToHex(buf: ArrayBuffer): string {
+function bufToHex(buf: ArrayBuffer | Uint8Array): string {
   return Array.from(new Uint8Array(buf))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -30,7 +30,7 @@ export async function hashPassword(password: string, saltHex?: string) {
     ["deriveBits"]
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations: 100_000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: salt as BufferSource, iterations: 100_000, hash: "SHA-256" },
     keyMaterial,
     256
   );

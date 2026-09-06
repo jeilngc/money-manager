@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, ChevronRight, CirclePlus, CreditCard, HandCoins, Landmark, MoreHorizontal, Send, WalletCards } from "lucide-react";
-import { useRef } from "react";
+import { ArrowDownLeft, ArrowUpRight, Bell, ChevronRight, CirclePlus, CreditCard, Repeat, WalletCards } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { AccountIcon } from "@/components/AccountIcon";
 import { currencySymbol, formatMinor } from "@/lib/utils";
 
@@ -11,11 +11,30 @@ type Transaction = { id: string; kind: "income" | "expense" | "transfer"; amount
 
 export function Dashboard({ firstName, accounts, transactions, weeklyExpenses }: { firstName: string; accounts: Account[]; transactions: Transaction[]; weeklyExpenses: number }) {
   const scroller = useRef<HTMLDivElement>(null);
+  const [activeCard, setActiveCard] = useState(0);
   const name = firstName || "there";
   const days = [0, 0, 0, 0, 0, 0, 0];
   transactions.filter((t) => t.kind === "expense").forEach((t) => { const offset = Math.floor((Date.now() - t.occurred_at) / 86400000); if (offset >= 0 && offset < 7) days[6 - offset] += t.amount; });
   const max = Math.max(...days, 1);
-  const swipe = (direction: number) => scroller.current?.scrollBy({ left: direction * (scroller.current.clientWidth - 18), behavior: "smooth" });
+
+  // Tracks which card is actually centered as the user swipes, so the dot
+  // indicator reflects real position instead of always showing the first dot.
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const onScroll = () => {
+      const index = Math.round(el.scrollLeft / Math.max(el.clientWidth, 1));
+      setActiveCard(index);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [accounts.length]);
+
+  const goToCard = (index: number) => {
+    const el = scroller.current;
+    if (!el) return;
+    el.scrollTo({ left: index * el.clientWidth, behavior: "smooth" });
+  };
 
   return <main className="px-3 pb-5 pt-7">
     <header className="mb-4 flex items-center justify-between px-2">
@@ -24,14 +43,14 @@ export function Dashboard({ firstName, accounts, transactions, weeklyExpenses }:
     </header>
 
     {accounts.length ? <><div ref={scroller} className="scroll-snap-x flex snap-x gap-3 overflow-x-auto px-2 pb-3" aria-label="Your accounts">
-      {accounts.map((account, index) => <Link key={account.id} href={`/accounts/${account.id}/edit`} className={`snap-card min-w-full rounded-[28px] p-5 text-white ${index % 2 ? "bg-gradient-to-br from-[#30305a] to-[#1e3157]" : "bg-gradient-to-br from-[#164e43] to-[#23506d]"}`}>
+      {accounts.map((account, index) => <Link key={account.id} href={`/accounts/${account.id}/edit`} className={`snap-card min-w-full shrink-0 rounded-[28px] p-5 text-white transition-all duration-200 ease-crisp ${index === activeCard ? "scale-100 opacity-100" : "scale-[0.94] opacity-70"} ${index % 2 ? "bg-gradient-to-br from-[#30305a] to-[#1e3157]" : "bg-gradient-to-br from-[#164e43] to-[#23506d]"}`}>
         <div className="flex items-center justify-between text-xs font-medium text-[#c5d9d8]"><span>{account.name}</span><span className="rounded-full bg-white/15 px-3 py-1 text-accent">Available</span></div>
         <p className="mt-2 text-4xl font-bold tracking-tight">{currencySymbol(account.currency)}{formatMinor(account.balance)}</p>
         <div className="mt-9 flex items-center justify-between"><span className="flex items-center gap-2 text-sm tracking-[.2em] text-[#d5e4e5]"><CreditCard size={17} />••••</span><span className="font-bold italic">{account.type === "ewallet" ? "e-Wallet" : "VISA"}</span></div>
       </Link>)}
-    </div><div className="mb-4 flex justify-center gap-1.5">{accounts.map((a, i) => <button key={a.id} onClick={() => swipe(i)} className={`h-1.5 rounded-full ${i === 0 ? "w-5 bg-accent" : "w-1.5 bg-mutedForeground/40"}`} aria-label={`Show ${a.name}`} />)}</div></> : <Link href="/accounts/new" className="surface mb-5 flex min-h-40 flex-col items-center justify-center gap-3 border border-dashed border-border text-mutedForeground"><CirclePlus className="text-accent" />Add your first account</Link>}
+    </div><div className="mb-4 flex justify-center gap-1.5">{accounts.map((a, i) => <button key={a.id} onClick={() => goToCard(i)} className={`h-1.5 rounded-full transition-all duration-200 ease-crisp ${i === activeCard ? "w-5 bg-accent" : "w-1.5 bg-mutedForeground/40"}`} aria-label={`Show ${a.name}`} />)}</div></> : <Link href="/accounts/new" className="surface mb-5 flex min-h-40 flex-col items-center justify-center gap-3 border border-dashed border-border text-mutedForeground"><CirclePlus className="text-accent" />Add your first account</Link>}
 
-    <section className="mb-4 grid grid-cols-4 gap-2 px-1"><Link href="/transactions/new?kind=expense" className="action-tile"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accentForeground"><Send size={18} /></span>Send</Link><Link href="/transactions/new?kind=income" className="action-tile"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#213b5f] text-[#55e3cc]"><HandCoins size={18} /></span>Request</Link><Link href="/transactions/new?kind=transfer" className="action-tile"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#213b5f] text-[#55e3cc]"><Landmark size={18} /></span>Top up</Link><Link href="/accounts" className="action-tile"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#213b5f]"><MoreHorizontal size={19} /></span>More</Link></section>
+    <section className="mb-4 grid grid-cols-4 gap-2 px-1"><Link href="/transactions/new?kind=expense" className="action-tile"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accentForeground"><ArrowUpRight size={18} /></span>Expense</Link><Link href="/transactions/new?kind=income" className="action-tile"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#213b5f] text-[#55e3cc]"><ArrowDownLeft size={18} /></span>Income</Link><Link href="/transactions/new?kind=transfer" className="action-tile"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#213b5f] text-[#55e3cc]"><Repeat size={18} /></span>Transfer</Link><Link href="/accounts" className="action-tile"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#213b5f] text-[#55e3cc]"><WalletCards size={18} /></span>Accounts</Link></section>
 
     <section className="surface mb-5 p-5"><div className="flex items-start justify-between"><div><p className="text-sm text-[#94b7e6]">Spending this week</p><p className="mt-1 text-2xl font-bold">₱{formatMinor(weeklyExpenses)}</p></div><Link href="/stats" className="rounded-full bg-background px-3 py-1 text-xs font-semibold text-accent">Insights</Link></div><div className="mt-5 flex h-20 items-end justify-between gap-2">{days.map((value, index) => <div key={index} className="flex flex-1 flex-col items-center gap-2"><div className={`w-full max-w-8 rounded-md ${index === 6 ? "bg-accent" : "bg-[#203555]"}`} style={{ height: `${Math.max(10, (value / max) * 64)}px` }} /><span className={`text-[10px] ${index === 6 ? "text-accent" : "text-mutedForeground"}`}>{["M","T","W","T","F","S","S"][index]}</span></div>)}</div></section>
 

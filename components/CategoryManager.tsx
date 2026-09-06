@@ -151,7 +151,7 @@ function CategoryRow({
           disabled={saving}
           className="!px-4 !py-2 rounded-2xl bg-accent !text-accentForeground"
         >
-          {saving ? "Saving…" : "Save"}
+          {saving ? "Saving\u2026" : "Save"}
         </Button>
         <button
           type="button"
@@ -160,7 +160,7 @@ function CategoryRow({
           className="ml-auto flex items-center gap-1.5 text-sm font-semibold text-[#ff7c72]"
         >
           <Trash2 size={16} />
-          {deleting ? "Removing…" : "Delete"}
+          {deleting ? "Removing\u2026" : "Delete"}
         </button>
       </div>
     </div>
@@ -170,7 +170,7 @@ function CategoryRow({
 function AddCategoryRow({ kind, onAdded }: { kind: "income" | "expense"; onAdded: (c: Category) => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [emoji, setEmoji] = useState("📌");
+  const [emoji, setEmoji] = useState("\u{1F4CC}");
   const [color, setColor] = useState(SWATCHES[0]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -195,7 +195,7 @@ function AddCategoryRow({ kind, onAdded }: { kind: "income" | "expense"; onAdded
       }
       onAdded(data.category);
       setName("");
-      setEmoji("📌");
+      setEmoji("\u{1F4CC}");
       setColor(SWATCHES[0]);
       setOpen(false);
     } catch {
@@ -265,7 +265,7 @@ function AddCategoryRow({ kind, onAdded }: { kind: "income" | "expense"; onAdded
         disabled={saving}
         className="!px-4 !py-2 rounded-2xl bg-accent !text-accentForeground"
       >
-        {saving ? "Adding…" : "Add category"}
+        {saving ? "Adding\u2026" : "Add category"}
       </Button>
     </div>
   );
