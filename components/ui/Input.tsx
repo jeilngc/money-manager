@@ -10,10 +10,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     <input
       ref={ref}
       className={cn(
-        "w-full bg-input border border-border text-foreground placeholder:text-mutedForeground",
-        "h-12 md:h-14 px-4 text-base",
-        "focus:border-accent focus:outline-none",
-        "transition-colors duration-150",
+        "w-full rounded-full border border-border bg-white/50 text-foreground placeholder:text-mutedForeground/70",
+        "h-12 px-5 text-base",
+        "transition-all duration-300",
+        "focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
@@ -26,10 +26,7 @@ Input.displayName = "Input";
 export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
   return (
     <label
-      className={cn(
-        "block font-mono text-xs uppercase tracking-widest text-mutedForeground mb-2",
-        className
-      )}
+      className={cn("mb-2 block text-sm font-bold text-foreground/80", className)}
       {...props}
     />
   );
@@ -37,5 +34,5 @@ export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElem
 
 export function FieldError({ children }: { children?: string | null }) {
   if (!children) return null;
-  return <p className="mt-2 text-sm text-accent">{children}</p>;
+  return <p className="mt-2 text-sm font-semibold text-destructive">{children}</p>;
 }

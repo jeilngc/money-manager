@@ -33,7 +33,7 @@ export function AccountIcon({
         alt=""
         width={size}
         height={size}
-        className={cn("object-cover bg-muted border border-border flex-shrink-0", className)}
+        className={cn("flex-shrink-0 rounded-2xl border border-border/50 bg-muted object-cover", className)}
         style={{ width: size, height: size }}
       />
     );
@@ -42,10 +42,10 @@ export function AccountIcon({
   const Icon = FALLBACK_ICONS[type] ?? Wallet;
   return (
     <div
-      className={cn("flex items-center justify-center bg-muted border border-border text-mutedForeground flex-shrink-0", className)}
+      className={cn("flex flex-shrink-0 items-center justify-center rounded-2xl border border-border/50 bg-muted text-primary", className)}
       style={{ width: size, height: size }}
     >
-      <Icon size={size * 0.5} strokeWidth={1.5} />
+      <Icon size={size * 0.5} strokeWidth={2} />
     </div>
   );
 }

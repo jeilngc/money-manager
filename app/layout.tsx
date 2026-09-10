@@ -1,28 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight, Playfair_Display, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Nunito } from "next/font/google";
 import "./globals.css";
 
-const interTight = Inter_Tight({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-inter-tight",
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-fraunces",
   display: "swap",
 });
 
-const playfair = Playfair_Display({
+const nunito = Nunito({
   subsets: ["latin"],
-  variable: "--font-playfair",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
+  weight: ["400", "600", "700", "800"],
+  variable: "--font-nunito",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Ledger",
-  description: "A money manager that treats your balances like headlines.",
+  description: "A money manager that treats your balances like something grown, not built.",
   manifest: "/manifest.json",
   icons: {
     icon: "/icons/icon-192.png",
@@ -30,13 +27,13 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "Ledger",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0A0A0A",
+  themeColor: "#FDFCF8",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -49,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${interTight.variable} ${playfair.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${nunito.variable}`}>
       <body>
         {children}
         <script

@@ -32,34 +32,37 @@ export default async function AccountsPage() {
 
   return (
     <div className="px-5 py-8">
-      <div className="flex items-center justify-between mb-7">
-        <div><p className="text-sm text-mutedForeground">Manage your money</p><h1 className="text-3xl font-bold tracking-tight">Your cards</h1></div>
+      <div className="mb-7 flex items-center justify-between">
+        <div>
+          <p className="text-sm text-mutedForeground">Manage your money</p>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">Your cards</h1>
+        </div>
         <Link
           href="/accounts/new"
-          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-accent text-accentForeground hover:opacity-90 transition-opacity"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primaryForeground shadow-soft transition-all duration-300 hover:scale-105 active:scale-95"
           aria-label="Add account"
         >
-          <Plus size={20} strokeWidth={1.5} />
+          <Plus size={20} strokeWidth={2} />
         </Link>
       </div>
 
-      <div className="surface grid grid-cols-3 p-5 mb-5">
+      <div className="surface mb-6 grid grid-cols-3 p-5">
         <div>
-          <p className="text-xs text-mutedForeground mb-1">Assets</p>
-          <p className="text-base font-bold tabular">{currencySymbol("PHP")}{formatMinor(assetTotal)}</p>
+          <p className="mb-1 text-xs text-mutedForeground">Assets</p>
+          <p className="tabular text-base font-bold text-foreground">{currencySymbol("PHP")}{formatMinor(assetTotal)}</p>
         </div>
         <div>
-          <p className="text-xs text-mutedForeground mb-1">Liabilities</p>
-          <p className="text-base font-bold tabular text-accent">{currencySymbol("PHP")}{formatMinor(liabilityTotal)}</p>
+          <p className="mb-1 text-xs text-mutedForeground">Liabilities</p>
+          <p className="tabular text-base font-bold text-secondary">{currencySymbol("PHP")}{formatMinor(liabilityTotal)}</p>
         </div>
         <div>
-          <p className="text-xs text-mutedForeground mb-1">Net total</p>
-          <p className="text-base font-bold tabular">{currencySymbol("PHP")}{formatMinor(assetTotal - liabilityTotal)}</p>
+          <p className="mb-1 text-xs text-mutedForeground">Net total</p>
+          <p className="tabular text-base font-bold text-foreground">{currencySymbol("PHP")}{formatMinor(assetTotal - liabilityTotal)}</p>
         </div>
       </div>
 
       {accounts.length === 0 ? (
-        <p className="text-mutedForeground py-16 text-center">
+        <p className="py-16 text-center text-mutedForeground">
           No accounts yet. Add your first one to start tracking balances.
         </p>
       ) : (
@@ -75,17 +78,17 @@ export default async function AccountsPage() {
 function AccountGroup({ title, accounts, negative }: { title: string; accounts: AccountRow[]; negative?: boolean }) {
   return (
     <div className="mb-8">
-      <p className="text-sm font-semibold text-mutedForeground mb-3 mt-6">{title}</p>
+      <p className="mb-3 mt-6 text-sm font-bold text-mutedForeground">{title}</p>
       <ul className="space-y-2">
         {accounts.map((a) => (
           <li key={a.id}>
             <Link
               href={`/accounts/${a.id}/edit`}
-              className="surface flex items-center gap-4 p-4 hover:bg-muted transition-colors duration-150"
+              className="surface flex items-center gap-4 p-4 transition-all duration-300 ease-crisp hover:-translate-y-0.5 hover:shadow-float"
             >
               <AccountIcon type={a.type as any} accountId={a.id} hasIcon={Boolean(a.icon_key)} size={44} />
-              <span className="flex-1 text-base font-semibold">{a.name}</span>
-              <span className={`font-semibold tabular ${negative ? "text-accent" : "text-foreground"}`}>
+              <span className="flex-1 text-base font-bold text-foreground">{a.name}</span>
+              <span className={`tabular font-bold ${negative ? "text-secondary" : "text-foreground"}`}>
                 {currencySymbol(a.currency)}{formatMinor(a.balance)}
               </span>
             </Link>

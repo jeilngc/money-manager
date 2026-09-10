@@ -13,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect("/login");
 
   return (
-    <div className="min-h-screen pb-24 bg-background">
+    <div className="min-h-screen bg-background pb-28">
       <div className="app-shell">{children}</div>
       <BottomNav />
     </div>
