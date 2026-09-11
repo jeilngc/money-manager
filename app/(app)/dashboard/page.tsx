@@ -3,8 +3,13 @@ import { cf } from "@/lib/cloudflare";
 import { getSessionUser } from "@/lib/auth";
 
 interface AccountRow {
-  balance: number;
+  id: string;
+  name: string;
+  type: string;
   group_type: "asset" | "liability";
+  currency: string;
+  balance: number;
+  icon_key: string | null;
 }
 
 export default async function DashboardPage() {
@@ -15,7 +20,7 @@ export default async function DashboardPage() {
   const historyWindow = now - 370 * 86400000;
 
   const [accountResult, transactionResult, weekly, historyResult] = await Promise.all([
-    DB.prepare("SELECT * FROM accounts WHERE user_id = ? AND archived = 0 ORDER BY sort_order, created_at").bind(user!.id).all(),
+    DB.prepare("SELECT * FROM accounts WHERE user_id = ? AND archived = 0 ORDER BY sort_order, created_at").bind(user!.id).all<AccountRow>(),
     DB.prepare(
       "SELECT t.*, c.name category_name, c.emoji category_emoji, a.name account_name FROM transactions t LEFT JOIN categories c ON c.id=t.category_id LEFT JOIN accounts a ON a.id=t.account_id WHERE t.user_id=? ORDER BY t.occurred_at DESC LIMIT 8"
     )
@@ -31,13 +36,13 @@ export default async function DashboardPage() {
       .all(),
   ]);
 
-  const accounts = (accountResult.results ?? []) as AccountRow[];
+  const accounts = accountResult.results ?? [];
   const netWorth = accounts.reduce((sum, a) => sum + (a.group_type === "liability" ? -a.balance : a.balance), 0);
 
   return (
     <Dashboard
       firstName={user!.firstName}
-      accounts={accountResult.results as any}
+      accounts={accounts}
       transactions={transactionResult.results as any}
       weeklyExpenses={weekly?.total ?? 0}
       netWorth={netWorth}
