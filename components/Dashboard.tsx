@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDownLeft, ArrowUpRight, Bell, ChevronRight, CirclePlus, Repeat, WalletCards } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, ChevronRight, CirclePlus, Repeat, Settings as SettingsIcon, WalletCards } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { currencySymbol, formatMinor } from "@/lib/utils";
+import { formatMinor } from "@/lib/utils";
+import { useCurrency } from "@/lib/currency";
+import { NetWorthWidget } from "@/components/NetWorthWidget";
 
 type Account = { id: string; name: string; type: string; currency: string; balance: number; icon_key: string | null };
 type Transaction = { id: string; kind: "income" | "expense" | "transfer"; amount: number; note: string | null; occurred_at: number; category_name: string | null; category_emoji: string | null; account_name: string | null };
+type HistoryTx = { kind: "income" | "expense"; amount: number; occurred_at: number };
 
 // Two earth tones alternating across account cards — moss and clay, never a third hue
 const CARD_THEMES = [
@@ -14,9 +17,30 @@ const CARD_THEMES = [
   "bg-gradient-to-br from-[#C18C5D] to-[#9C6E44]",
 ];
 
-export function Dashboard({ firstName, accounts, transactions, weeklyExpenses }: { firstName: string; accounts: Account[]; transactions: Transaction[]; weeklyExpenses: number }) {
+function greetingFor(hour: number): string {
+  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+export function Dashboard({
+  firstName,
+  accounts,
+  transactions,
+  weeklyExpenses,
+  netWorth,
+  history,
+}: {
+  firstName: string;
+  accounts: Account[];
+  transactions: Transaction[];
+  weeklyExpenses: number;
+  netWorth: number;
+  history: HistoryTx[];
+}) {
   const scroller = useRef<HTMLDivElement>(null);
   const [activeCard, setActiveCard] = useState(0);
+  const { symbol } = useCurrency();
   const name = firstName || "there";
   const days = [0, 0, 0, 0, 0, 0, 0];
   transactions
@@ -26,6 +50,17 @@ export function Dashboard({ firstName, accounts, transactions, weeklyExpenses }:
       if (offset >= 0 && offset < 7) days[6 - offset] += t.amount;
     });
   const max = Math.max(...days, 1);
+
+  // The greeting and date reflect the visitor's own clock, so they're read
+  // client-side after mount rather than from the server's request time.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const dateLabel = now ? now.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) : "";
+  const greeting = now ? greetingFor(now.getHours()) : "Hello";
 
   // Tracks which card is actually centered as the user swipes, so the dot
   // indicator reflects real position instead of always showing the first dot.
@@ -56,15 +91,22 @@ export function Dashboard({ firstName, accounts, transactions, weeklyExpenses }:
             {name.slice(0, 1).toUpperCase()}
           </span>
           <div>
-            <p className="text-xs text-mutedForeground">Good morning</p>
-            <h1 className="font-display text-lg font-semibold leading-tight text-foreground">{name}</h1>
+            <p className="text-xs text-mutedForeground">{dateLabel}</p>
+            <h1 className="font-display text-lg font-semibold leading-tight text-foreground">
+              {greeting}, {name}
+            </h1>
           </div>
         </div>
-        <button className="relative flex h-11 w-11 items-center justify-center rounded-full bg-muted transition-colors duration-300 hover:bg-accent" aria-label="Notifications">
-          <Bell size={19} className="text-foreground" />
-          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-secondary" />
-        </button>
+        <Link
+          href="/settings"
+          aria-label="Settings"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-foreground transition-colors duration-300 hover:bg-accent"
+        >
+          <SettingsIcon size={19} />
+        </Link>
       </header>
+
+      <NetWorthWidget netWorth={netWorth} history={history} />
 
       {accounts.length ? (
         <>
@@ -81,8 +123,8 @@ export function Dashboard({ firstName, accounts, transactions, weeklyExpenses }:
                   <span>{account.name}</span>
                   <span className="rounded-full bg-white/15 px-3 py-1">Available</span>
                 </div>
-                <p className="mt-3 font-display text-4xl font-semibold tracking-tight">
-                  {currencySymbol(account.currency)}{formatMinor(account.balance)}
+                <p className="mt-3 text-4xl font-bold tracking-tight">
+                  {symbol}{formatMinor(account.balance)}
                 </p>
                 <div className="mt-9 flex items-center justify-between text-sm text-white/70">
                   <span className="tracking-[.25em]">••••</span>
@@ -140,7 +182,9 @@ export function Dashboard({ firstName, accounts, transactions, weeklyExpenses }:
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm text-mutedForeground">Spending this week</p>
-            <p className="mt-1 font-display text-2xl font-semibold text-foreground">₱{formatMinor(weeklyExpenses)}</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">
+              {symbol}{formatMinor(weeklyExpenses)}
+            </p>
           </div>
           <Link href="/stats" className="rounded-full bg-muted px-3 py-1 text-xs font-bold text-primary">
             Insights
@@ -178,7 +222,7 @@ export function Dashboard({ firstName, accounts, transactions, weeklyExpenses }:
               </div>
               <div className="text-right">
                 <p className={`text-sm font-bold ${t.kind === "income" ? "text-primary" : "text-foreground"}`}>
-                  {t.kind === "income" ? "+" : t.kind === "expense" ? "−" : ""}₱{formatMinor(t.amount)}
+                  {t.kind === "income" ? "+" : t.kind === "expense" ? "−" : ""}{symbol}{formatMinor(t.amount)}
                 </p>
                 <p className="text-[10px] text-mutedForeground">{t.kind}</p>
               </div>

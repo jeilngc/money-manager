@@ -6,24 +6,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Earth-drawn palette: forest floor, clay, unbleached paper
-        background: "#FDFCF8",
-        foreground: "#2C2C24",
-        primary: "#5D7052",
-        primaryForeground: "#F3F4F1",
-        secondary: "#C18C5D",
-        secondaryForeground: "#FFFFFF",
-        accent: "#E6DCCD",
-        accentForeground: "#4A4A40",
-        muted: "#F0EBE5",
-        mutedForeground: "#78786C",
-        border: "#DED8CF",
-        input: "#FFFFFF",
-        card: "#FEFEFA",
-        cardForeground: "#2C2C24",
-        destructive: "#A85448",
-        destructiveForeground: "#FDFCF8",
-        ring: "#5D7052",
+        // Each token reads a "R G B" triple from a CSS variable so Tailwind's
+        // opacity modifiers (bg-primary/10 etc.) keep working in both themes.
+        background: "rgb(var(--background) / <alpha-value>)",
+        foreground: "rgb(var(--foreground) / <alpha-value>)",
+        primary: "rgb(var(--primary) / <alpha-value>)",
+        primaryForeground: "rgb(var(--primary-foreground) / <alpha-value>)",
+        secondary: "rgb(var(--secondary) / <alpha-value>)",
+        secondaryForeground: "rgb(var(--secondary-foreground) / <alpha-value>)",
+        accent: "rgb(var(--accent) / <alpha-value>)",
+        accentForeground: "rgb(var(--accent-foreground) / <alpha-value>)",
+        muted: "rgb(var(--muted) / <alpha-value>)",
+        mutedForeground: "rgb(var(--muted-foreground) / <alpha-value>)",
+        border: "rgb(var(--border) / <alpha-value>)",
+        input: "rgb(var(--input) / <alpha-value>)",
+        card: "rgb(var(--card) / <alpha-value>)",
+        cardForeground: "rgb(var(--card-foreground) / <alpha-value>)",
+        destructive: "rgb(var(--destructive) / <alpha-value>)",
+        destructiveForeground: "rgb(var(--destructive-foreground) / <alpha-value>)",
+        ring: "rgb(var(--ring) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["var(--font-nunito)", "Nunito", "system-ui", "sans-serif"],

@@ -14,9 +14,10 @@ interface Category {
   kind: "income" | "expense";
 }
 
+// Earth-drawn variety — moss, clay, sand, bark — instead of the old neon set
 const SWATCHES = [
-  "#B6F542", "#55E3CC", "#FF7C72", "#FFC15E",
-  "#7AA2FF", "#C792EA", "#FF9EC4", "#8FA4C7",
+  "#5D7052", "#C18C5D", "#8FA47D", "#A85448",
+  "#78786C", "#B08968", "#6B8E6B", "#9C6E44",
 ];
 
 function CategoryRow({
@@ -96,17 +97,17 @@ function CategoryRow({
     return (
       <button
         onClick={() => setEditing(true)}
-        className="flex w-full items-center gap-3 border-b border-border p-4 text-left last:border-b-0"
+        className="flex w-full items-center gap-3 border-b border-border/50 p-4 text-left last:border-b-0"
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-lg">{emoji}</span>
-        <span className="flex-1 text-sm font-semibold">{name}</span>
-        <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} aria-hidden />
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-muted text-lg">{emoji}</span>
+        <span className="flex-1 text-sm font-bold text-foreground">{name}</span>
+        <span className="h-3 w-3 flex-shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
       </button>
     );
   }
 
   return (
-    <div className="border-b border-border p-4 last:border-b-0">
+    <div className="border-b border-border/50 p-4 last:border-b-0">
       <div className="mb-3 flex items-center gap-3">
         <Input
           value={emoji}
@@ -123,7 +124,7 @@ function CategoryRow({
         />
         <button
           onClick={() => setEditing(false)}
-          className="flex h-11 w-11 items-center justify-center text-mutedForeground"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-mutedForeground transition-colors duration-300 hover:bg-muted"
           aria-label="Cancel"
         >
           <X size={18} />
@@ -135,8 +136,8 @@ function CategoryRow({
             key={swatch}
             onClick={() => setColor(swatch)}
             className={cn(
-              "h-7 w-7 rounded-full ring-offset-2 ring-offset-card",
-              color === swatch && "ring-2 ring-foreground"
+              "h-7 w-7 rounded-full ring-offset-2 ring-offset-card transition-transform duration-300 hover:scale-110",
+              color === swatch && "ring-2 ring-primary"
             )}
             style={{ backgroundColor: swatch }}
             aria-label={`Color ${swatch}`}
@@ -145,22 +146,17 @@ function CategoryRow({
       </div>
       <FieldError>{error}</FieldError>
       <div className="flex items-center gap-3">
-        <Button
-          type="button"
-          onClick={save}
-          disabled={saving}
-          className="!px-4 !py-2 rounded-2xl bg-accent !text-accentForeground"
-        >
-          {saving ? "Saving\u2026" : "Save"}
+        <Button type="button" onClick={save} disabled={saving} size="sm">
+          {saving ? "Saving…" : "Save"}
         </Button>
         <button
           type="button"
           onClick={() => remove(false)}
           disabled={deleting}
-          className="ml-auto flex items-center gap-1.5 text-sm font-semibold text-[#ff7c72]"
+          className="ml-auto flex items-center gap-1.5 text-sm font-bold text-destructive"
         >
           <Trash2 size={16} />
-          {deleting ? "Removing\u2026" : "Delete"}
+          {deleting ? "Removing…" : "Delete"}
         </button>
       </div>
     </div>
@@ -209,9 +205,9 @@ function AddCategoryRow({ kind, onAdded }: { kind: "income" | "expense"; onAdded
     return (
       <button
         onClick={() => setOpen(true)}
-        className="flex w-full items-center gap-3 p-4 text-left text-sm font-semibold text-accent"
+        className="flex w-full items-center gap-3 p-4 text-left text-sm font-bold text-primary"
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
           <Plus size={16} />
         </span>
         Add category
@@ -238,7 +234,7 @@ function AddCategoryRow({ kind, onAdded }: { kind: "income" | "expense"; onAdded
         />
         <button
           onClick={() => setOpen(false)}
-          className="flex h-11 w-11 items-center justify-center text-mutedForeground"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-mutedForeground transition-colors duration-300 hover:bg-muted"
           aria-label="Cancel"
         >
           <X size={18} />
@@ -250,8 +246,8 @@ function AddCategoryRow({ kind, onAdded }: { kind: "income" | "expense"; onAdded
             key={swatch}
             onClick={() => setColor(swatch)}
             className={cn(
-              "h-7 w-7 rounded-full ring-offset-2 ring-offset-card",
-              color === swatch && "ring-2 ring-foreground"
+              "h-7 w-7 rounded-full ring-offset-2 ring-offset-card transition-transform duration-300 hover:scale-110",
+              color === swatch && "ring-2 ring-primary"
             )}
             style={{ backgroundColor: swatch }}
             aria-label={`Color ${swatch}`}
@@ -259,13 +255,8 @@ function AddCategoryRow({ kind, onAdded }: { kind: "income" | "expense"; onAdded
         ))}
       </div>
       <FieldError>{error}</FieldError>
-      <Button
-        type="button"
-        onClick={add}
-        disabled={saving}
-        className="!px-4 !py-2 rounded-2xl bg-accent !text-accentForeground"
-      >
-        {saving ? "Adding\u2026" : "Add category"}
+      <Button type="button" onClick={add} disabled={saving} size="sm">
+        {saving ? "Adding…" : "Add category"}
       </Button>
     </div>
   );
@@ -289,9 +280,9 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
 
   return (
     <section className="mb-5">
-      <h2 className="mb-3 px-1 font-bold">Categories</h2>
+      <h2 className="mb-3 px-1 font-display text-lg font-semibold text-foreground">Categories</h2>
 
-      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-widest text-mutedForeground">Expense</p>
+      <p className="mb-2 px-1 text-xs font-bold text-mutedForeground">Expense</p>
       <div className="surface mb-4 overflow-hidden">
         {expense.map((c) => (
           <CategoryRow key={c.id} category={c} onSaved={handleSaved} onDeleted={handleDeleted} />
@@ -299,7 +290,7 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
         <AddCategoryRow kind="expense" onAdded={handleAdded} />
       </div>
 
-      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-widest text-mutedForeground">Income</p>
+      <p className="mb-2 px-1 text-xs font-bold text-mutedForeground">Income</p>
       <div className="surface overflow-hidden">
         {income.map((c) => (
           <CategoryRow key={c.id} category={c} onSaved={handleSaved} onDeleted={handleDeleted} />

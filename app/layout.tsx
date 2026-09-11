@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Nunito } from "next/font/google";
+import Script from "next/script";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -46,9 +48,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${nunito.variable}`}>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${nunito.variable}`}
+      suppressHydrationWarning
+    >
       <body>
-        {children}
+        {/* Runs before React hydrates so there's no flash of the wrong theme */}
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`
+            try {
+              if (localStorage.getItem('ledger-theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+              }
+            } catch (e) {}
+          `}
+        </Script>
+        <Providers>{children}</Providers>
         <script
           dangerouslySetInnerHTML={{
             __html: `

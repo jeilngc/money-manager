@@ -1,4 +1,4 @@
-import { ProfileForm } from "@/components/ProfileForm";
+import { SettingsPreferences } from "@/components/SettingsPreferences";
 import { CategoryManager } from "@/components/CategoryManager";
 import { cf } from "@/lib/cloudflare";
 import { getSessionUser } from "@/lib/auth";
@@ -13,11 +13,13 @@ export default async function SettingsPage() {
     .all();
 
   return (
-    <>
-      <ProfileForm firstName={user!.firstName} lastName={user!.lastName} email={user!.email} />
-      <div className="px-5 pt-5 pb-8">
-        <CategoryManager initialCategories={(results ?? []) as any} />
-      </div>
-    </>
+    <main className="px-5 pb-8 pt-8">
+      <header className="mb-7">
+        <p className="text-sm text-mutedForeground">Customize Ledger</p>
+        <h1 className="font-display text-3xl font-semibold text-foreground">Settings</h1>
+      </header>
+      <SettingsPreferences />
+      <CategoryManager initialCategories={(results ?? []) as any} />
+    </main>
   );
 }

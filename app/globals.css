@@ -3,6 +3,49 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Light — forest floor, clay, unbleached paper. Values are "R G B" so
+       Tailwind's rgb(var(--x) / <alpha-value>) can apply opacity modifiers. */
+    --background: 253 252 248;
+    --foreground: 44 44 36;
+    --primary: 93 112 82;
+    --primary-foreground: 243 244 241;
+    --secondary: 193 140 93;
+    --secondary-foreground: 255 255 255;
+    --accent: 230 220 205;
+    --accent-foreground: 74 74 64;
+    --muted: 240 235 229;
+    --muted-foreground: 120 120 108;
+    --border: 222 216 207;
+    --input: 255 255 255;
+    --card: 254 254 250;
+    --card-foreground: 44 44 36;
+    --destructive: 168 84 72;
+    --destructive-foreground: 253 252 248;
+    --ring: 93 112 82;
+  }
+
+  .dark {
+    /* Dark — the same forest at night, never pure black. */
+    --background: 36 37 31;
+    --foreground: 241 238 230;
+    --primary: 143 164 125;
+    --primary-foreground: 32 36 29;
+    --secondary: 201 150 104;
+    --secondary-foreground: 33 29 24;
+    --accent: 58 57 49;
+    --accent-foreground: 230 224 213;
+    --muted: 51 52 45;
+    --muted-foreground: 180 178 168;
+    --border: 80 79 70;
+    --input: 51 52 45;
+    --card: 44 45 38;
+    --card-foreground: 241 238 230;
+    --destructive: 201 108 94;
+    --destructive-foreground: 36 37 31;
+    --ring: 143 164 125;
+  }
+
   * {
     @apply border-border;
   }
@@ -12,7 +55,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans transition-colors duration-300;
     letter-spacing: -0.005em;
     line-height: 1.65;
     position: relative;
@@ -23,7 +66,8 @@
     letter-spacing: -0.01em;
   }
 
-  /* Paper grain overlay — keeps every flat surface feeling handmade, not printed */
+  /* Paper grain overlay — keeps every flat surface feeling handmade, not printed.
+     Dialed back further in dark mode so it stays a whisper, not a texture. */
   body::before {
     content: "";
     position: fixed;
@@ -34,20 +78,31 @@
     mix-blend-mode: multiply;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
+  .dark body::before {
+    opacity: 0.02;
+    mix-blend-mode: overlay;
+  }
 
   ::selection {
-    background: #5D7052;
-    color: #F3F4F1;
+    background: rgb(var(--primary));
+    color: rgb(var(--primary-foreground));
   }
 
   :focus-visible {
-    outline: 2px solid #5D7052;
+    outline: 2px solid rgb(var(--primary));
     outline-offset: 2px;
     border-radius: 6px;
   }
 
   input, textarea, select {
     font-size: 16px; /* prevent iOS zoom on focus */
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
@@ -56,7 +111,7 @@
 
   /* Base card: soft moss-tinted shadow, gently rounded, never a hard edge */
   .surface {
-    @apply rounded-[2rem] bg-card border border-border/50 shadow-soft;
+    @apply rounded-[2rem] bg-card border border-border/50 shadow-soft transition-colors duration-300;
   }
 
   .action-tile {
