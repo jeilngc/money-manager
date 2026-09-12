@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, FieldError } from "@/components/ui/Input";
-import { toMinor } from "@/lib/utils";
+import { toMinor, formatMinor } from "@/lib/utils";
 
 interface Account {
   id: string;
@@ -16,24 +16,41 @@ interface Category {
   emoji: string;
   kind: "income" | "expense";
 }
+interface ExistingTransaction {
+  id: string;
+  kind: "income" | "expense" | "transfer";
+  amount: number;
+  account_id: string;
+  transfer_to_account_id: string | null;
+  category_id: string | null;
+  note: string | null;
+  occurred_at: number;
+}
 
 export function TransactionForm({
   accounts,
   categories,
   initialKind = "expense",
+  transaction,
 }: {
   accounts: Account[];
   categories: Category[];
   initialKind?: "expense" | "income" | "transfer";
+  transaction?: ExistingTransaction;
 }) {
   const router = useRouter();
-  const [kind, setKind] = useState<"expense" | "income" | "transfer">(initialKind);
-  const [amount, setAmount] = useState("");
-  const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
-  const [toAccountId, setToAccountId] = useState(accounts[1]?.id ?? accounts[0]?.id ?? "");
-  const [categoryId, setCategoryId] = useState<string>("");
-  const [note, setNote] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const isEdit = Boolean(transaction);
+  const [kind, setKind] = useState<"expense" | "income" | "transfer">(transaction?.kind ?? initialKind);
+  const [amount, setAmount] = useState(transaction ? formatMinor(transaction.amount) : "");
+  const [accountId, setAccountId] = useState(transaction?.account_id ?? accounts[0]?.id ?? "");
+  const [toAccountId, setToAccountId] = useState(
+    transaction?.transfer_to_account_id ?? accounts[1]?.id ?? accounts[0]?.id ?? ""
+  );
+  const [categoryId, setCategoryId] = useState<string>(transaction?.category_id ?? "");
+  const [note, setNote] = useState(transaction?.note ?? "");
+  const [date, setDate] = useState(() =>
+    transaction ? new Date(transaction.occurred_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -49,8 +66,8 @@ export function TransactionForm({
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/transactions", {
-        method: "POST",
+      const res = await fetch(isEdit ? `/api/transactions/${transaction!.id}` : "/api/transactions", {
+        method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           kind,
@@ -76,9 +93,17 @@ export function TransactionForm({
     }
   }
 
+  async function handleDelete() {
+    if (!transaction) return;
+    if (!confirm("Delete this transaction? This can't be undone.")) return;
+    await fetch(`/api/transactions/${transaction.id}`, { method: "DELETE" });
+    router.push("/transactions");
+    router.refresh();
+  }
+
   return (
     <form onSubmit={handleSubmit} className="px-6 md:px-16 py-10 max-w-lg">
-      <h1 className="text-4xl font-semibold tracking-tight mb-10">New transaction</h1>
+      <h1 className="text-4xl font-semibold tracking-tight mb-10">{isEdit ? "Edit transaction" : "New transaction"}</h1>
 
       <div className="mb-8 flex gap-3">
         {(["expense", "income", "transfer"] as const).map((k) => (
@@ -87,7 +112,7 @@ export function TransactionForm({
             key={k}
             onClick={() => setKind(k)}
             className={`flex-1 h-12 border text-sm uppercase tracking-wider transition-colors duration-150 ${
-              kind === k ? "border-accent text-accent" : "border-border text-mutedForeground"
+              kind === k ? "border-primary text-primary" : "border-border text-mutedForeground"
             }`}
           >
             {k}
@@ -113,7 +138,7 @@ export function TransactionForm({
           id="account"
           value={accountId}
           onChange={(e) => setAccountId(e.target.value)}
-          className="w-full h-12 md:h-14 bg-input border border-border text-foreground px-4 focus:border-accent focus:outline-none"
+          className="w-full h-12 md:h-14 rounded-2xl bg-input border border-border text-foreground px-4 focus:border-primary focus:outline-none"
         >
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
@@ -130,7 +155,7 @@ export function TransactionForm({
             id="toAccount"
             value={toAccountId}
             onChange={(e) => setToAccountId(e.target.value)}
-            className="w-full h-12 md:h-14 bg-input border border-border text-foreground px-4 focus:border-accent focus:outline-none"
+            className="w-full h-12 md:h-14 rounded-2xl bg-input border border-border text-foreground px-4 focus:border-primary focus:outline-none"
           >
             {accounts.map((a) => (
               <option key={a.id} value={a.id}>
@@ -146,7 +171,7 @@ export function TransactionForm({
             id="category"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full h-12 md:h-14 bg-input border border-border text-foreground px-4 focus:border-accent focus:outline-none"
+            className="w-full h-12 md:h-14 rounded-2xl bg-input border border-border text-foreground px-4 focus:border-primary focus:outline-none"
           >
             <option value="">Uncategorized</option>
             {visibleCategories.map((c) => (
@@ -170,9 +195,15 @@ export function TransactionForm({
 
       <FieldError>{error}</FieldError>
 
-      <Button type="submit" disabled={loading || !accountId} className="mt-6">
-        {loading ? "Saving\u2026" : "Save transaction"}
+      <Button type="submit" disabled={loading || !accountId} className="mt-6 w-full">
+        {loading ? "Saving\u2026" : isEdit ? "Save changes" : "Save transaction"}
       </Button>
+
+      {isEdit && (
+        <button type="button" onClick={handleDelete} className="mt-4 block text-sm font-bold text-destructive">
+          Delete transaction
+        </button>
+      )}
     </form>
   );
 }

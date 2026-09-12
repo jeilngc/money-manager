@@ -14,6 +14,10 @@ export async function GET(req: NextRequest) {
 
   const from = req.nextUrl.searchParams.get("from");
   const to = req.nextUrl.searchParams.get("to");
+  const kind = req.nextUrl.searchParams.get("kind");
+  // "none" is a sentinel for the Uncategorized bucket (category_id IS NULL),
+  // since a real category_id column value can never be the string "none".
+  const categoryId = req.nextUrl.searchParams.get("category_id");
 
   let query = `
     SELECT t.*, c.name as category_name, c.emoji as category_emoji, c.color as category_color,
@@ -31,6 +35,16 @@ export async function GET(req: NextRequest) {
   if (to) {
     query += " AND t.occurred_at <= ?";
     binds.push(Number(to));
+  }
+  if (kind) {
+    query += " AND t.kind = ?";
+    binds.push(kind);
+  }
+  if (categoryId === "none") {
+    query += " AND t.category_id IS NULL";
+  } else if (categoryId) {
+    query += " AND t.category_id = ?";
+    binds.push(categoryId);
   }
   query += " ORDER BY t.occurred_at DESC, t.created_at DESC";
 

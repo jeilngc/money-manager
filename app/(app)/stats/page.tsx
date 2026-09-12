@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cf } from "@/lib/cloudflare";
 import { getSessionUser } from "@/lib/auth";
 import { PieChart } from "@/components/PieChart";
+import { StatsBreakdown } from "@/components/StatsBreakdown";
 import { currencySymbol, formatMinor, formatMonthLabel, startOfMonth, endOfMonth } from "@/lib/utils";
 
 interface CategoryTotal {
@@ -12,6 +13,12 @@ interface CategoryTotal {
   color: string | null;
   total: number;
 }
+
+// Warm, muted categorical palette — shared with StatsBreakdown/PieChart so a
+// category without its own saved color always renders identically everywhere.
+const FALLBACK_COLORS = [
+  "#8FA47D", "#C18C5D", "#C9A66B", "#5D7052", "#A6927C", "#B98B7B", "#9C9C8A", "#8C6A4E",
+];
 
 function parseMonthParam(month?: string): Date {
   if (month && /^\d{4}-\d{2}$/.test(month)) {
@@ -41,21 +48,34 @@ export default async function StatsPage({
   const prev = new Date(current.getFullYear(), current.getMonth() - 1, 1);
   const next = new Date(current.getFullYear(), current.getMonth() + 1, 1);
 
-  const { results } = await DB.prepare(
-    `SELECT t.category_id as category_id, c.name as name, c.emoji as emoji, c.color as color, SUM(t.amount) as total
-     FROM transactions t
-     LEFT JOIN categories c ON c.id = t.category_id
-     WHERE t.user_id = ? AND t.kind = ? AND t.occurred_at BETWEEN ? AND ?
-     GROUP BY t.category_id
-     ORDER BY total DESC`
-  )
-    .bind(user!.id, kind, from, to)
-    .all<CategoryTotal>();
+  const [categoryResult, totalsResult] = await Promise.all([
+    DB.prepare(
+      `SELECT t.category_id as category_id, c.name as name, c.emoji as emoji, c.color as color, SUM(t.amount) as total
+       FROM transactions t
+       LEFT JOIN categories c ON c.id = t.category_id
+       WHERE t.user_id = ? AND t.kind = ? AND t.occurred_at BETWEEN ? AND ?
+       GROUP BY t.category_id
+       ORDER BY total DESC`
+    )
+      .bind(user!.id, kind, from, to)
+      .all<CategoryTotal>(),
+    DB.prepare(
+      `SELECT kind, COALESCE(SUM(amount), 0) as total FROM transactions
+       WHERE user_id = ? AND kind IN ('income','expense') AND occurred_at BETWEEN ? AND ?
+       GROUP BY kind`
+    )
+      .bind(user!.id, from, to)
+      .all<{ kind: string; total: number }>(),
+  ]);
 
-  const rows = results ?? [];
-  const total = rows.reduce((s, r) => s + r.total, 0);
+  const rows = categoryResult.results ?? [];
+  const kindTotal = rows.reduce((s, r) => s + r.total, 0);
 
-  const FALLBACK_COLORS = ["#FF3D00", "#FF7A45", "#FFA940", "#FADB14", "#73D13D", "#40A9FF", "#737373"];
+  const totalsByKind: Record<"income" | "expense", number> = { income: 0, expense: 0 };
+  for (const row of totalsResult.results ?? []) {
+    if (row.kind === "income" || row.kind === "expense") totalsByKind[row.kind] = row.total;
+  }
+
   const slices = rows.map((r, i) => ({
     label: r.name ?? "Uncategorized",
     value: r.total,
@@ -80,12 +100,14 @@ export default async function StatsPage({
           <Link
             key={k}
             href={`/stats?month=${monthParam(current)}&kind=${k}`}
-            className={`flex-1 py-4 text-center border-b-2 -mb-px transition-colors duration-150 ${
-              kind === k ? "border-accent text-foreground" : "border-transparent text-mutedForeground"
+            className={`flex-1 py-4 text-center border-b-2 -mb-px transition-colors duration-300 ${
+              kind === k ? "border-primary text-foreground" : "border-transparent text-mutedForeground"
             }`}
           >
             <span className="font-mono text-xs uppercase tracking-widest">{k === "income" ? "Income" : "Expenses"}</span>
-            <span className="block font-mono text-lg tabular mt-1">{currencySymbol("PHP")}{formatMinor(total)}</span>
+            <span className="block font-mono text-lg tabular mt-1">
+              {currencySymbol("PHP")}{formatMinor(totalsByKind[k])}
+            </span>
           </Link>
         ))}
       </div>
@@ -98,23 +120,7 @@ export default async function StatsPage({
             <PieChart data={slices} />
           </div>
 
-          <ul className="border-t border-border">
-            {rows.map((r, i) => (
-              <li key={r.category_id ?? "none"} className="flex items-center gap-4 py-4 border-b border-border">
-                <span
-                  className="w-3 h-3 flex-shrink-0"
-                  style={{ backgroundColor: r.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length] }}
-                  aria-hidden
-                />
-                <span className="text-xl w-7 text-center">{r.emoji ?? "\u{1F4CC}"}</span>
-                <span className="flex-1">{r.name ?? "Uncategorized"}</span>
-                <span className="font-mono text-mutedForeground text-sm w-14 text-right">
-                  {total > 0 ? ((r.total / total) * 100).toFixed(1) : "0.0"}%
-                </span>
-                <span className="font-mono tabular w-28 text-right">{currencySymbol("PHP")}{formatMinor(r.total)}</span>
-              </li>
-            ))}
-          </ul>
+          <StatsBreakdown rows={rows} kind={kind} kindTotal={kindTotal} from={from} to={to} />
         </>
       )}
     </div>

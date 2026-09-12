@@ -43,7 +43,7 @@ export function PieChart({ data, size = 280 }: { data: PieSlice[]; size?: number
   if (total === 0) {
     return (
       <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#262626" strokeWidth={1} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgb(var(--border))" strokeWidth={1} />
       </svg>
     );
   }
@@ -51,7 +51,15 @@ export function PieChart({ data, size = 280 }: { data: PieSlice[]; size?: number
   return (
     <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-label="Category breakdown">
       {slices.map((s, i) => (
-        <path key={i} d={arcPath(cx, cy, r, s.startAngle, s.endAngle)} fill={s.color} stroke="#0A0A0A" strokeWidth={2} />
+        <path
+          key={i}
+          d={arcPath(cx, cy, r, s.startAngle, s.endAngle)}
+          fill={s.color}
+          // A thin stroke matching the card behind it reads as a soft gap
+          // between slices instead of the old heavy black outline.
+          stroke="rgb(var(--card))"
+          strokeWidth={3}
+        />
       ))}
     </svg>
   );
